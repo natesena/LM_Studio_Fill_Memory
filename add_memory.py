@@ -1,23 +1,93 @@
-# add_memory.py
-"""
-Defines the add_memory tool schema and Python functions to interact with MCP servers using LM Studio's chat completion API.
-"""
-import requests
-from typing import Optional
+# WARNING: Do NOT modify the mcp_initialize or mcp_call_tool functions unless you know exactly what you're doing!
+# These functions are tightly coupled to the MCP/Graphiti protocol and are critical for correct operation.
+# Any changes may break the memory tool integration.
 
-def add_memory_via_lmstudio(name: str, episode_body: str, lmstudio_url: str = "http://127.0.0.1:1234/v1", model: str = "qwen3-32b") -> str:
+import requests
+import json
+import uuid
+from typing import Optional, Dict, Any
+
+def mcp_initialize(graphiti_url: str) -> str:
     """
-    Add memory using LM Studio's chat completion API with tool calling.
-    Args:
-        name: The name of the memory episode.
-        episode_body: The content to store in memory.
-        lmstudio_url: The LM Studio API URL (default: local LM Studio).
-        model: The model name to use.
-    Returns:
-        The result as a string.
+    WARNING: Do NOT modify this function unless you know exactly what you're doing!
+    Initialize MCP session with the Graphiti server and return the session ID.
     """
     try:
-        # Define the add_memory tool for LM Studio
+        initialize_request = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "clientInfo": {"name": "lmstudio-memory-integration", "version": "1.0.0"}
+            }
+        }
+        headers = {"Content-Type": "application/json"}
+        base_url = graphiti_url.replace('/sse', '')
+        messages_url = f"{base_url}/messages/"
+        # Generate a new session ID
+        session_id = uuid.uuid4().hex
+        # Send initialize request with session_id
+        response = requests.post(
+            f"{messages_url}?session_id={session_id}",
+            json=initialize_request,
+            headers=headers,
+            timeout=30
+        )
+        response.raise_for_status()
+        # 202 Accepted means the session is created
+        if response.status_code == 202:
+            return session_id
+        else:
+            raise Exception(f"Unexpected response from initialize: {response.text}")
+    except Exception as exc:
+        raise Exception(f"Failed to initialize MCP session: {exc}")
+
+def mcp_call_tool(graphiti_url: str, session_id: str, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    WARNING: Do NOT modify this function unless you know exactly what you're doing!
+    Call a tool on the MCP server using the established session.
+    """
+    try:
+        tool_call_request = {
+            "jsonrpc": "2.0",
+            "id": str(uuid.uuid4()),
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": arguments}
+        }
+        headers = {"Content-Type": "application/json"}
+        base_url = graphiti_url.replace('/sse', '')
+        messages_url = f"{base_url}/messages/?session_id={session_id}"
+        response = requests.post(
+            messages_url,
+            json=tool_call_request,
+            headers=headers,
+            timeout=30
+        )
+        response.raise_for_status()
+        if response.status_code == 202:
+            return {"success": True, "message": "Memory addition request accepted"}
+        else:
+            try:
+                data = response.json()
+                if "error" in data:
+                    raise Exception(f"MCP tool call error: {data['error']}")
+                else:
+                    return data
+            except json.JSONDecodeError:
+                raise Exception(f"Unexpected tool call response: {response.text}")
+    except Exception as exc:
+        raise Exception(f"Failed to call MCP tool: {exc}")
+
+def add_memory_via_lmstudio(prompt: str, lmstudio_url: str = "http://127.0.0.1:1234/v1/chat/completions", 
+                           graphiti_url: str = "http://localhost:8000/sse", 
+                           model: str = "qwen3-32b") -> str:
+    """
+    Add memory using LM Studio's chat completion API with tool calling, following MCP protocol.
+    This function ties together chat completion, session initialization, and tool call.
+    """
+    try:
         tools = [{
             "type": "function",
             "function": {
@@ -33,37 +103,61 @@ def add_memory_via_lmstudio(name: str, episode_body: str, lmstudio_url: str = "h
                 }
             }
         }]
-        
-        # Create the chat completion request
         payload = {
             "model": model,
             "messages": [
-                {"role": "user", "content": f"Please add a memory with name '{name}' and content '{episode_body}'"}
+                {"role": "user", "content": prompt}
             ],
             "tools": tools,
             "stream": False
         }
-        
-        headers = {
-            "Content-Type": "application/json"
-        }
-        
-        # Send request to LM Studio
-        response = requests.post(f"{lmstudio_url}/chat/completions", json=payload, headers=headers, timeout=30)
+        headers = {"Content-Type": "application/json"}
+        print(f"Sending request to LM Studio: {prompt}")
+        response = requests.post(lmstudio_url, json=payload, headers=headers, timeout=120)
         response.raise_for_status()
         data = response.json()
-        
-        # Check if the model wants to call the tool
         if data["choices"][0]["message"].get("tool_calls"):
             tool_call = data["choices"][0]["message"]["tool_calls"][0]
             print(f"Model requested tool call: {tool_call['function']['name']}")
-            
-            # Here you would execute the actual tool call to your MCP server
-            # For now, we'll just return the tool call info
-            return f"Tool call requested: {tool_call['function']['name']} with args: {tool_call['function']['arguments']}"
+            print(f"Tool call arguments: {tool_call['function']['arguments']}")
+            try:
+                arguments = json.loads(tool_call['function']['arguments'])
+                name = arguments.get('name')
+                episode_body = arguments.get('episode_body')
+                if not name or not episode_body:
+                    return "Error: Missing required arguments 'name' or 'episode_body'"
+                print(f"Parsed arguments - name: {name}, episode_body: {episode_body}")
+                # Always get a session via initialize
+                print("Initializing MCP session...")
+                session_id = mcp_initialize(graphiti_url)
+                print(f"MCP session initialized with ID: {session_id}")
+                # Call the add_memory tool on the MCP server
+                print("Calling add_memory tool on MCP server...")
+                result = mcp_call_tool(graphiti_url, session_id, "add_memory", {
+                    "name": name,
+                    "episode_body": episode_body
+                })
+                print(f"MCP tool call result: {result}")
+                final_payload = {
+                    "model": model,
+                    "messages": [
+                        {"role": "user", "content": prompt},
+                        {"role": "assistant", "content": None, "tool_calls": [tool_call]},
+                        {"role": "tool", "content": json.dumps(result), "tool_call_id": tool_call["id"]}
+                    ],
+                    "stream": False
+                }
+                print("Sending final request to LM Studio with tool result...")
+                final_response = requests.post(lmstudio_url, json=final_payload, headers=headers, timeout=120)
+                final_response.raise_for_status()
+                final_data = final_response.json()
+                return f"Memory added successfully! Final response: {final_data['choices'][0]['message']['content']}"
+            except json.JSONDecodeError as e:
+                return f"Error parsing tool call arguments: {e}"
+            except Exception as e:
+                return f"Error executing tool call: {e}"
         else:
-            return f"Model response: {data['choices'][0]['message']['content']}"
-        
+            return f"Model response (no tool call): {data['choices'][0]['message']['content']}"
     except Exception as exc:
         return f"Error calling add_memory via LM Studio: {exc}"
 
