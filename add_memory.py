@@ -171,6 +171,86 @@ class FastMcpSession:
         print(f"[TOOLS/CALL] Status: {resp.status_code}, Body: {resp.text}")
         return resp
 
+def add_memory_via_lmstudio(prompt, lmstudio_url="http://127.0.0.1:1234/v1/chat/completions", model="qwen3-32b"):
+    """
+    Add memory using LM Studio chat completion API with tool calling.
+    This function is used by batch_memory_adder.py to process file lists.
+    
+    Args:
+        prompt: The prompt containing the memory to add (e.g., "Please add a memory with the name 'file_path' and content 'file_info'")
+        lmstudio_url: LM Studio API URL
+        model: Model to use
+    
+    Returns:
+        Success/error message
+    """
+    try:
+        # Create a FastMCP session for this memory addition
+        sse_url = "http://localhost:8000/sse"
+        base_url = "http://localhost:8000"
+        session = FastMcpSession(sse_url)
+        
+        # Initialize the session
+        session.start()
+        if not session.initialize(base_url):
+            session.stop()
+            return "Error: Failed to initialize MCP session"
+        
+        # Extract memory name and content from the prompt
+        # Expected format: "Please add a memory with the name 'file_path' and the following content: 'file_info'"
+        try:
+            # Simple parsing - look for the pattern
+            if "name '" in prompt and "content: '" in prompt:
+                name_start = prompt.find("name '") + 6
+                name_end = prompt.find("'", name_start)
+                name = prompt[name_start:name_end]
+                
+                content_start = prompt.find("content: '") + 10
+                content_end = prompt.rfind("'")
+                episode_body = prompt[content_start:content_end]
+            else:
+                # Fallback: use the entire prompt as content
+                name = f"Memory_{int(time.time())}"
+                episode_body = prompt
+        except Exception as e:
+            # Fallback: use the entire prompt as content
+            name = f"Memory_{int(time.time())}"
+            episode_body = prompt
+        
+        # Call the add_memory tool
+        tool_name = "add_memory"
+        arguments = {
+            "name": name,
+            "episode_body": episode_body
+        }
+        
+        tool_response = session.post_tool_call(base_url, tool_name, arguments)
+        
+        if tool_response.status_code == 202:
+            # Wait for the result
+            for _ in range(30):
+                event = session.get_event(timeout=1)
+                if event and event.get("event") == "message":
+                    try:
+                        data = json.loads(event["data"])
+                        if "result" in data:
+                            session.stop()
+                            return "Memory added successfully"
+                        elif "error" in data:
+                            session.stop()
+                            return f"Error adding memory: {data['error']}"
+                    except json.JSONDecodeError:
+                        continue
+            
+            session.stop()
+            return "Memory queued for processing"
+        else:
+            session.stop()
+            return f"Error: Tool call failed with status {tool_response.status_code}"
+            
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 if __name__ == "__main__":
     # 1. Initialize MCP session and keep SSE connection open
     print("=== STEP 1: Initializing MCP Session ===")
