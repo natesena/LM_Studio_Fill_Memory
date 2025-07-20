@@ -1,0 +1,3 @@
+/Users/nathanielsena/Documents/code/Kismet/custom-chat-element/index.html
+/Users/nathanielsena/Documents/code/Kismet/custom-chat-element/vite.config.mjs
+/Users/nathanielsena/Documents/code/Kismet/custom-chat-element/LICENSE

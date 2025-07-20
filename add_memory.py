@@ -171,7 +171,61 @@ class FastMcpSession:
         print(f"[TOOLS/CALL] Status: {resp.status_code}, Body: {resp.text}")
         return resp
 
-def add_memory_via_lmstudio(prompt, lmstudio_url="http://127.0.0.1:1234/v1/chat/completions", model="qwen3-32b"):
+def check_queue_status(base_url="http://localhost:8000"):
+    """
+    Check the status of the Graphiti MCP server and queue.
+    
+    Returns:
+        dict: Status information including queue health
+    """
+    try:
+        # Simple check: try to connect to the SSE endpoint
+        sse_url = f"{base_url}/sse"
+        resp = requests.get(sse_url, stream=True, timeout=10)
+        
+        if resp.status_code == 200:
+            # Server is responding
+            print(f"✅ Graphiti MCP server is running and responding")
+            return {"status": "ok", "message": "Graphiti MCP server is running"}
+        else:
+            print(f"❌ Server status check failed: {resp.status_code}")
+            return {"status": "error", "message": f"Status check failed: {resp.status_code}"}
+            
+    except Exception as e:
+        print(f"❌ Error checking queue status: {e}")
+        return {"status": "error", "message": str(e)}
+
+def wait_for_queue_clearance(base_url="http://localhost:8000", max_wait_time=300, check_interval=10):
+    """
+    Wait for the queue to clear before proceeding with more memory additions.
+    
+    Args:
+        base_url: Graphiti server URL
+        max_wait_time: Maximum time to wait in seconds (default: 5 minutes)
+        check_interval: How often to check queue status in seconds (default: 10)
+    
+    Returns:
+        bool: True if queue cleared, False if timeout reached
+    """
+    print(f"⏳ Waiting for queue clearance (max {max_wait_time}s)...")
+    
+    start_time = time.time()
+    while time.time() - start_time < max_wait_time:
+        status = check_queue_status(base_url)
+        
+        if status.get("status") == "ok":
+            print("✅ Queue appears to be clear, proceeding...")
+            return True
+        else:
+            remaining = max_wait_time - (time.time() - start_time)
+            print(f"⏳ Queue still processing, waiting {remaining:.0f}s more...")
+            time.sleep(check_interval)
+    
+    print(f"⚠️ Timeout reached ({max_wait_time}s), proceeding anyway...")
+    return False
+
+def add_memory_via_lmstudio(prompt, lmstudio_url="http://127.0.0.1:1234/v1/chat/completions", model="qwen3-32b", 
+                           rate_limit_delay=2, check_queue=True):
     """
     Add memory using LM Studio chat completion API with tool calling.
     This function is used by batch_memory_adder.py to process file lists.
@@ -180,11 +234,21 @@ def add_memory_via_lmstudio(prompt, lmstudio_url="http://127.0.0.1:1234/v1/chat/
         prompt: The prompt containing the memory to add (e.g., "Please add a memory with the name 'file_path' and content 'file_info'")
         lmstudio_url: LM Studio API URL
         model: Model to use
+        rate_limit_delay: Delay between memory additions in seconds (default: 2)
+        check_queue: Whether to check queue status before adding memory (default: True)
     
     Returns:
         Success/error message
     """
     try:
+        # Check queue status if enabled
+        if check_queue:
+            status = check_queue_status()
+            if status.get("status") != "ok":
+                print(f"⚠️ Server status: {status.get('message', 'Unknown')}")
+                # Wait a bit and try again
+                time.sleep(rate_limit_delay)
+        
         # Create a FastMCP session for this memory addition
         sse_url = "http://localhost:8000/sse"
         base_url = "http://localhost:8000"
@@ -235,6 +299,9 @@ def add_memory_via_lmstudio(prompt, lmstudio_url="http://127.0.0.1:1234/v1/chat/
                         data = json.loads(event["data"])
                         if "result" in data:
                             session.stop()
+                            # Rate limiting delay
+                            if rate_limit_delay > 0:
+                                time.sleep(rate_limit_delay)
                             return "Memory added successfully"
                         elif "error" in data:
                             session.stop()

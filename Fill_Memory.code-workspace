@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../graphiti"
+    },
+    {
+      "path": "../Kismet/platform/backend/src/controllers"
+    }
+  ],
+  "settings": {}
+}
