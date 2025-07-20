@@ -7,8 +7,12 @@ import requests
 import os
 import argparse
 import time
-from ..core.memory_adder import add_memory_via_lmstudio
-from ..queue.monitor import GraphitiQueueMonitor
+import sys
+import os
+# Add src to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+from core.memory_adder import add_memory_via_lmstudio
+from queue_management.queue_monitor import GraphitiQueueMonitor
 
 def get_file_info(file_path: str, lmstudio_url: str = "http://127.0.0.1:1234/v1/chat/completions", model: str = "qwen3-32b", max_chars: int = 2000) -> str:
     """

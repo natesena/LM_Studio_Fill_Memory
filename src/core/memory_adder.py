@@ -1,6 +1,6 @@
 import requests
 import threading
-import queue
+import queue as std_queue
 import time
 import uuid as uuidlib
 import json
@@ -10,7 +10,7 @@ class FastMcpSession:
         self.sse_url = sse_url
         self.session_id = None
         self._sse_thread = None
-        self._event_queue = queue.Queue()
+        self._event_queue = std_queue.Queue()
         self._stop_event = threading.Event()
         self._sse_connection = None
         self._initialized = False
@@ -75,7 +75,7 @@ class FastMcpSession:
     def get_event(self, timeout=10):
         try:
             return self._event_queue.get(timeout=timeout)
-        except queue.Empty:
+        except std_queue.Empty:
             return None
 
     def initialize(self, base_url):
