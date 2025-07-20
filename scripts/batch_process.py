@@ -126,10 +126,8 @@ Examples:
         result = process_file_list_with_proper_queue_monitoring(
             file_list_path=args.file_list,
             max_chars=args.max_chars,
-            rate_limit_delay=args.rate_limit_delay,
-            graphiti_timeout=args.graphiti_timeout,
-            lmstudio_url=args.lmstudio_url,
-            model=args.model
+            lmstudio_delay=args.rate_limit_delay,
+            graphiti_timeout=args.graphiti_timeout
         )
         
         print(f"✅ Batch processing completed!")
