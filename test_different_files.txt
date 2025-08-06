@@ -1,0 +1,2 @@
+/Users/nathanielsena/Documents/code/LM_Studio_Fill_Memory/src/core/memory_adder.py
+/Users/nathanielsena/Documents/code/LM_Studio_Fill_Memory/scripts/add_memory.py

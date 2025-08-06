@@ -62,8 +62,8 @@ Examples:
     parser.add_argument(
         "--graphiti-timeout",
         type=int,
-        default=300,
-        help="Timeout for Graphiti queue operations in seconds (default: 300)"
+        default=600,
+        help="Timeout for Graphiti queue operations in seconds (default: 600)"
     )
     
     parser.add_argument(

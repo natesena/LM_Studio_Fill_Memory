@@ -1,0 +1,171 @@
+{
+  "tasks": [
+    {
+      "id": "e06f3741-04a2-46c0-9574-4bab199270ee",
+      "name": "Make Git File Extractor",
+      "description": "Create a simple script that can get a list of files that changed in a Git commit. This script will run 'git show' command and extract just the file names that were added or modified.",
+      "notes": "Keep it simple - just extract file names from Git diff output.",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "src/utils/git_utils.py",
+          "type": "CREATE",
+          "description": "Simple Git file extractor"
+        }
+      ],
+      "implementationGuide": "Create src/utils/git_utils.py with one main function: get_changed_files(commit_hash). Use subprocess to run 'git show --name-only <commit_hash>' and return a list of file paths. Handle basic errors if Git command fails.",
+      "verificationCriteria": "Can take a commit hash and return a list of changed files. Test with a real commit hash.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    },
+    {
+      "id": "22d278b7-0390-426e-be0c-7e57b5c35a16",
+      "name": "Make File History Tracker",
+      "description": "Create a simple JSON file to keep track of which files have been processed for each commit. This prevents reprocessing the same files.",
+      "notes": "Simple JSON storage - just track what's been done.",
+      "status": "pending",
+      "dependencies": [],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "src/utils/processing_tracker.py",
+          "type": "CREATE",
+          "description": "Simple file history tracker"
+        },
+        {
+          "path": "data/processing_history.json",
+          "type": "CREATE",
+          "description": "JSON file to store processing history"
+        }
+      ],
+      "implementationGuide": "Create data/processing_history.json to store which files were processed for each commit. Create src/utils/processing_tracker.py with simple functions: is_file_processed(commit_hash, file_path) and mark_file_processed(commit_hash, file_path).",
+      "verificationCriteria": "Can check if a file was processed for a commit and mark files as processed. Test with sample commit and file.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    },
+    {
+      "id": "ebeae66b-9867-4bd1-bbe7-24b3517f2b5d",
+      "name": "Make Git Batch Processor",
+      "description": "Create the main script that puts everything together. This script will get changed files from a commit, check which ones need processing, and process them using the existing batch processor.",
+      "notes": "Reuse existing batch_processor.py functions - don't recreate the wheel.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "e06f3741-04a2-46c0-9574-4bab199270ee"
+        },
+        {
+          "taskId": "22d278b7-0390-426e-be0c-7e57b5c35a16"
+        }
+      ],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "src/core/git_batch_processor.py",
+          "type": "CREATE",
+          "description": "Main Git batch processor"
+        },
+        {
+          "path": "src/core/batch_processor.py",
+          "type": "REFERENCE",
+          "description": "Use existing processing functions"
+        }
+      ],
+      "implementationGuide": "Create src/core/git_batch_processor.py with one main function: process_commit(commit_hash). Use the git_utils to get changed files, check history to see what's already done, and use existing batch_processor functions to process the remaining files.",
+      "verificationCriteria": "Can process files from a Git commit using existing batch processor. Test with a real commit.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    },
+    {
+      "id": "1c4bbb44-b3cf-4620-a47b-133424d4a465",
+      "name": "Make Command Line Tool",
+      "description": "Create a simple command line tool that lets you process commits easily. Should work like: 'python git_process.py --commit abc123'",
+      "notes": "Follow existing CLI patterns - keep it simple.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "ebeae66b-9867-4bd1-bbe7-24b3517f2b5d"
+        }
+      ],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "scripts/git_process.py",
+          "type": "CREATE",
+          "description": "Simple CLI tool for Git processing"
+        },
+        {
+          "path": "scripts/batch_process.py",
+          "type": "REFERENCE",
+          "description": "Follow existing CLI patterns"
+        }
+      ],
+      "implementationGuide": "Create scripts/git_process.py with argparse. Add arguments: --commit for single commit, --latest for latest commit. Use existing CLI patterns from other scripts.",
+      "verificationCriteria": "Can run from command line with --commit argument and process files. Test with real commit hash.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    },
+    {
+      "id": "6e15e6e5-a400-461d-9a99-6bf4b9666e51",
+      "name": "Make Status Checker",
+      "description": "Add a simple way to check what's been processed and what still needs to be done. This helps you see the status of your processing.",
+      "notes": "Reuse existing Neo4j checking code - don't reinvent.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "ebeae66b-9867-4bd1-bbe7-24b3517f2b5d"
+        }
+      ],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "src/core/git_batch_processor.py",
+          "type": "TO_MODIFY",
+          "description": "Add status checking functions"
+        },
+        {
+          "path": "check_batch_bolt.py",
+          "type": "REFERENCE",
+          "description": "Use existing Neo4j checking patterns"
+        }
+      ],
+      "implementationGuide": "Add functions to git_batch_processor.py: check_status(commit_hash) to show which files are done and which need processing. Use existing Neo4j checking patterns.",
+      "verificationCriteria": "Can show status of which files are processed vs pending. Test with sample commit.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    },
+    {
+      "id": "dcd0bedc-7992-4b98-b80e-a3334ade511d",
+      "name": "Write Simple Documentation",
+      "description": "Create a simple README file that explains how to use the new Git processing system. Include basic examples and troubleshooting tips.",
+      "notes": "Follow existing documentation style - make it easy to understand.",
+      "status": "pending",
+      "dependencies": [
+        {
+          "taskId": "1c4bbb44-b3cf-4620-a47b-133424d4a465"
+        },
+        {
+          "taskId": "6e15e6e5-a400-461d-9a99-6bf4b9666e51"
+        }
+      ],
+      "createdAt": "2025-08-04T02:19:06.088Z",
+      "updatedAt": "2025-08-04T02:19:06.088Z",
+      "relatedFiles": [
+        {
+          "path": "docs/git_processing_guide.md",
+          "type": "CREATE",
+          "description": "Simple usage guide"
+        },
+        {
+          "path": "README.md",
+          "type": "REFERENCE",
+          "description": "Follow existing documentation style"
+        }
+      ],
+      "implementationGuide": "Create docs/git_processing_guide.md with: what the system does, how to install, basic usage examples, common problems and solutions. Keep it simple and practical.",
+      "verificationCriteria": "Documentation explains how to use the system with clear examples. Someone can follow it to use the tool.",
+      "analysisResult": "Simplified Git-based processing system that processes only files changed in each Git commit. The system reuses existing batch processing infrastructure and follows simple, straightforward implementation patterns. Each task is focused on one clear function with minimal complexity."
+    }
+  ]
+}

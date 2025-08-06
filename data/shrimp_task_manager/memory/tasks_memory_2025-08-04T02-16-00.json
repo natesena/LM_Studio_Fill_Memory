@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "id": "a7d6875a-b1cb-455e-ad5f-56329b0e0848",
+      "name": "Confirm current queue reading capabilities",
+      "description": "Test and validate that we can reliably read the existing in-memory episode_queues and queue_names data structures at runtime using docker exec commands. Verify we can see queue length, waiting items, and worker status.",
+      "notes": "Use existing docker exec patterns from queue_poller.py. Test with actual queue activity to ensure accuracy.",
+      "status": "completed",
+      "dependencies": [],
+      "createdAt": "2025-07-24T19:12:58.151Z",
+      "updatedAt": "2025-07-24T19:50:16.976Z",
+      "relatedFiles": [
+        {
+          "path": "LM_Studio_Fill_Memory/src/queue_management/queue_poller.py",
+          "type": "REFERENCE",
+          "description": "Existing queue reading patterns"
+        },
+        {
+          "path": "graphiti/mcp_server/graphiti_mcp_server.py",
+          "type": "REFERENCE",
+          "description": "episode_queues and queue_names globals"
+        }
+      ],
+      "implementationGuide": "1. Test docker exec command to read episode_queues.qsize() and queue_names for each group_id.\\n2. Verify accuracy by comparing with actual queue activity.\\n3. Document the exact commands that work reliably.\\n4. Test edge cases: empty queue, multiple groups, worker status.",
+      "verificationCriteria": "Can accurately read queue state including size, items, and worker status. Commands work consistently across different queue states.",
+      "analysisResult": "Safe approach: first understand and validate current queue system, then add monitoring capabilities, then plan persistent queue transition. All changes are read-only and non-breaking.",
+      "summary": "Successfully confirmed that we can read the existing in-memory episode_queues and queue_names data structures at runtime using docker exec commands. However, discovered a critical limitation: the current system only tracks items waiting in the queue, not the item currently being processed. When an item is picked up by the worker, it's removed from both episode_queues and queue_names, making it invisible to monitoring tools. This explains why the queue appears empty even when processing is actively happening (as evidenced by Ollama API calls and Neo4j operations in the logs). The reliable commands for reading queue state are documented, but they only show waiting items, not currently processing items.",
+      "completedAt": "2025-07-24T19:50:16.976Z"
+    }
+  ]
+}

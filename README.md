@@ -10,7 +10,7 @@ This project enables you to use LM Studio and a Graphiti server to analyze code 
 LM_Studio_Fill_Memory/
 ├── src/                    # Main source code
 │   ├── core/              # Core memory addition functionality
-│   ├── queue/             # Queue monitoring and management
+│   ├── queue_management/  # Queue monitoring and management
 │   ├── utils/             # Utility functions
 │   └── legacy/            # Legacy implementations
 ├── scripts/               # Command-line interface scripts
@@ -208,12 +208,30 @@ If you were using the old file structure:
 4. Add tests for new functionality
 5. Update this README for any new features
 
+## ⚠️ Current Issues
+
+### Queue Persistence Problem
+
+**Critical Issue**: The current batch processing system has a significant limitation with queue persistence:
+
+- **No Persistent Queue**: The Graphiti MCP server uses in-memory `asyncio.Queue` that gets lost when the computer restarts
+- **No Progress Tracking**: There's no way to track which files have been processed vs. which are still pending
+- **No Resume Capability**: If processing is interrupted, you must start over from the beginning
+- **Work Loss**: All queued items are lost on system restart
+
+**Impact**: This means if you're processing thousands of files and your computer restarts, all progress is lost and you must restart from the beginning.
+
+**Solution**: A persistent queue system using PostgreSQL + Redis is planned (see `graphiti/durable_episode_queue_postgres.md` for the complete implementation plan).
+
+**Workaround**: For now, process smaller batches and ensure your system doesn't restart during processing.
+
 ## 🐛 Troubleshooting
 
 - **LM Studio or Graphiti not running?** Ensure both services are up and URLs are correct
 - **File not found errors?** Check your paths in file lists or when running scripts
 - **Queue timeout errors?** Increase the `--graphiti-timeout` parameter
 - **GPU contention?** Increase the `--rate-limit-delay` parameter
+- **Lost progress after restart?** This is a known issue - see "Current Issues" section above
 
 ## 📋 TODO
 

@@ -1,0 +1,155 @@
+[
+  {
+    "hash": "f979ed2dcc8d1d1ce10b55c293696c2e3d8b1116",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix(graphiti): Eliminate expired_at and invalid_at property warnings\n\n- Enhanced replace_vector_similarity_in_query function to handle missing properties\n- Added property replacement logic for expired_at and invalid_at references\n- Updated graphiti_service.py to use neo4j_vector_utils_fixed\n- Eliminated database query warnings that were causing processing delays\n- System now processes episodes without property-related interruptions\n\nThis fix resolves the UnknownPropertyKeyWarning issues that were slowing down episode processing.\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "7538329e50cef43f08a7012c35a4b02ba863d21a",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "feat(graphiti): Add Ollama and Graphiti log viewer to UI\n\n- Add /logs/ollama and /logs/graphiti endpoints to Graphiti service\n- Add proxy endpoints /api/graphiti-logs/* to Node.js server\n- Add IPC handlers for log retrieval (graphiti-get-ollama-logs, graphiti-get-graphiti-logs)\n- Add getOllamaLogs() and getGraphitiLogs() methods to Graphiti service\n- Create GraphitiLogViewer React component with tabs, refresh, download, and auto-refresh\n- Update browserAPI to use IPC handlers with HTTP fallback\n- Add log viewer to GraphitiGraphPage for real-time debugging\n\nThis provides complete visibility into Ollama LLM calls and Graphiti processing logs for debugging knowledge graph issues.\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "762a33d86b5120d16f180da28305452e54429d95",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix(graphiti): Resolve graph visualization node types and relationship processing\n\n- Fix entity type extraction from _labels array instead of null type field\n- Add node ID mapping to resolve Neo4j internal IDs to UUIDs/names\n- Filter relationships to exclude CONTAINS (internal structure)\n- Only process meaningful relationships (MENTIONS, RELATES_TO)\n- Update documentation with detailed analysis and fixes\n\nThe graph should now display:\n- 5 Entity nodes with correct types (Person, Event, Concept)\n- 4 Episodic nodes\n- 10 meaningful relationships with proper connections\n- Interactive visualization with proper node colors and clickable elements\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "6bf18baca3b81f1e54805e75398fd275037f8f24",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix: Resolve Graphiti model configuration issue\n\n- Add small_model parameter to LLMConfig to prevent fallback to gpt-4.1-nano\n- Fix entity extraction by ensuring both main and small models use llama3.2:latest\n- Update investigation document with critical error findings and resolution\n- Successfully tested: 2 episodes and 2 entities now being created correctly\n\nThis resolves the root cause where Graphiti was trying to use unavailable gpt-4.1-nano\nmodel instead of the configured Ollama llama3.2:latest model.\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "49d31bad163d8623b0887bfa0265f50bc5959525",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix: resolve React hooks violation in InsightsChatWindow search functionality\n\n- Move useProcessing() hook call to top level of component\n- Fixes React error #321 that was preventing search from working\n- Qdrant search functionality now working properly again\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "0c76c9029ac0b67d718830548a5167a3bd22da13",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix: ensure Graphiti service always starts fresh instance\n\n- Modified scripts/dev-services/graphiti.sh to always start a new Graphiti instance\n- Added warning log when existing instance is detected\n- Stops existing instance before starting fresh one to ensure clean startup\n- Fixes issue where old instances with wrong Ollama port (11434) were being reused\n- Now properly uses correct Ollama port (11435) for new instances\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "b797507515e356259a2bfc351a06edcf37455a5b",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "docs: Update Graphiti Service Analysis with investigation findings\n\n- Add detailed discovery process and evidence collection\n- Identify root cause as Python service hardcoded fallback to port 11434\n- Update investigation priorities to focus on environment variables\n- Document that Node.js port assignment system works correctly\n- Add key questions for next investigation phase\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "8a849d9620b2a62ba26086870e60e81e70b5cf72",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "feat: Implement Ollama Status Block with model listing\n\n- Add ollama-status-get-global-status IPC handler for comprehensive Ollama service status\n- Integrate ollamaStats into ProcessingContext for centralized data management\n- Create OllamaStatusBlock component with blue theme styling and model display\n- Add OllamaStatusBlock to ProcessingStatusBar layout alongside other service blocks\n- Display service health, connection info, model statistics, and available model list\n- Show model names and sizes with scrollable list for multiple models\n- Follow existing patterns for consistency with other status blocks\n- Provide real-time monitoring capabilities for Ollama service\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "07ff23e1c2693498c59be4bf152682f8239de819",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "Delete unused ServiceStatusBar component file\n\n- Remove src/components/ServiceStatusBar.jsx since it's no longer used\n- Component was only showing basic health status which was redundant\n- ProcessingStatusBar blocks provide much more detailed and useful information\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "a82f3929dfdfd5dd7c1372632d53e43365613b3b",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "Remove redundant ServiceStatusBar component\n\n- Remove ServiceStatusBar from MainContent since ProcessingStatusBar blocks provide much more detailed information\n- ProcessingStatusBar blocks show detailed metrics, progress tracking, and real-time data\n- ServiceStatusBar only showed basic health status which was redundant\n- Clean up imports and comments\n\nThe ProcessingStatusBar blocks provide:\n- Neo4j: Node counts, relationships, performance metrics, error details\n- Graphiti: Queue status, processing rates, progress percentages, current activity\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "77e2d8570af91b6c02f6621d11756b7a3b8b79c8",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "Fix Neo4j and Graphiti service issues\n\n- Fix Neo4j JSON parsing by using bundled Python environment and removing debug output\n- Improve JSON extraction logic to handle debug messages in Python script output\n- Fix Graphiti service to use correct port and endpoints instead of non-existent Express server\n- Update Graphiti service to call Python service directly via HTTP endpoints\n- Add proper error handling and logging for both services\n\nNeo4j changes:\n- Use bundled Python environment instead of system Python\n- Remove debug print statements from neo4j_setup.py\n- Improve JSON extraction to handle multi-line output\n\nGraphiti changes:\n- Fix getGraphitiData to use correct Graphiti service port\n- Update endpoints to use /health, /graph/stats, /graph/export\n- Remove dependency on non-existent Express server at localhost:3000\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "cc27ed410f32cb79dccaf9dc8771f99851a84587",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "Remove Graphiti Knowledge Graph processing display from sidebar\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "89aa1e78228a8367378e533eb946cb4690ca5112",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "docs: Add comprehensive embedding data drift issue documentation\n\n- Document the absurd data drift between ProcessingManager state and database queries\n- Explain the four data sources in the embedding system (Source DB, Embedding DB, Qdrant, ProcessingManager state)\n- Detail the correct vs current data flow architecture\n- Add investigation section for chat 125 embedding issue\n- Include specific code snippets for debugging non-embeddable messages vs processing logic issues\n- Remove redundant IndexChatStatusButton component\n- Prioritize database as single source of truth over in-memory state management\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "a5e1020facedc24574913bc23a6be11d1f78088c",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "feat(processing): Complete extraction of processing logic to ProcessingManager\n\n- Move all processing state management from ChatList to ProcessingManager\n- Fix queue processing useEffect to prevent infinite re-renders\n- Add proper initialization logic that waits for all chats to load\n- Implement early return in queue processing to prevent conflicts\n- Add comprehensive logging for debugging queue processing issues\n- Remove isEmbeddingProcessing from useEffect dependency array to prevent re-runs\n- Ensure single source of truth for all processing state\n\nThis refactoring addresses the infinite re-rendering and queue processing\nissues by properly separating display concerns from processing concerns.\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "692e29f1e2e9317101b3bdb60194e625831929fd",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "docs: Add Phase 1 ChatList architecture analysis and validation tests\n\n- Comprehensive analysis of current ChatList component (528 lines)\n- Identified mixed responsibilities (display + processing)\n- Documented data flow and dependencies between contexts\n- Mapped all processing-related code sections\n- Created detailed validation test suite (9 test categories)\n- Established baseline metrics and success criteria\n- Identified infinite re-render loops and performance issues\n- Prepared foundation for safe incremental refactoring\n\nPhase 1 complete: Ready to begin Phase 2 (ProcessingManager creation)\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "6f0265ae8803f3b3434d6ff6be9c3ffe29b236fa",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "docs: Add ChatList processing logic refactoring plan\n\n- Comprehensive plan to separate processing logic from ChatList\n- 5-phase incremental approach with validation at each step\n- Focus on maintaining functionality while improving architecture\n- Addresses infinite re-render loops and performance issues\n- Includes risk mitigation and success criteria\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  },
+  {
+    "hash": "46f690edb58bdc3ad30c5904f5cd0b6df8a3166e",
+    "author": "Nathaniel Sena <nate.sena1@gmail.com>",
+    "date": "",
+    "message": "fix: Correct queue processing logic for chats with missing last_message_date\n\n- Remove incorrect continue statement that skipped chats with missing last_message_date\n- Add comprehensive documentation explaining data sources and property meanings\n- Fix property access from chat.lastMessage.message_date to chat.lastMessage.date\n- Improve logging to explain when chats exist in status table but have no processed messages\n- Ensure chats with failed/incomplete processing are re-evaluated for queue inclusion\n\nThis fixes the issue where chats with valid messages were being skipped due to missing last_message_date in the status table.\n",
+    "files_changed": [],
+    "insertions": 0,
+    "deletions": 0
+  }
+]
